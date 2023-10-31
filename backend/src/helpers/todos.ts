@@ -80,5 +80,5 @@ export async function updateTodoAttachmentUrl(userId: string, todoId: string, at
     }  
   }
 
-  await todosAccess.updateTodoAttachmentUrl(todoId, attachmentUrl)
+  await todosAccess.updateTodoAttachmentUrl(userId, todoId, attachmentUrl)
 }
