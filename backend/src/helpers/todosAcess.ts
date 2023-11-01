@@ -122,4 +122,23 @@ export class TodosAccess {
     }).promise()
   }
 
+  async deleteImgUrl(userId: string, todoId: string) {
+    logger.info('Start delete image of todoId', { todoId })
+
+    await this.docClient
+      .update({
+        TableName: this.todosTable,
+        Key: {
+          todoId,
+          userId
+        },
+        UpdateExpression: 'set attachmentUrl = :attachmentUrl',
+        ExpressionAttributeValues: {
+          ':attachmentUrl': ''
+        }
+      })
+      .promise()  
+
+      logger.info('End delete image of todo')
+  }
 }

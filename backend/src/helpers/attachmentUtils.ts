@@ -25,4 +25,11 @@ export class AttachmentUtils {
     return url
   }
 
+  async deleteObjectS3(url: string){
+    const path = url.split("/")
+    return this.s3.deleteObject({
+        Bucket: this.s3BucketName,
+        Key: path[path.length - 1],
+    })
+  }
 }

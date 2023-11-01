@@ -44,6 +44,15 @@ export async function deleteTodo(userId: string, todoId: string) {
     }  
   }
   todosAccess.deleteTodo(userId, todoId)
+  // Delete img file in s3 if exist
+  try {
+    if (todo.attachmentUrl) {
+      await attachmentUtils.deleteObjectS3(todo.attachmentUrl)
+    } 
+  } catch (error) {
+    logger.info('Something went wrong with attachment of todoId ', {todoId})
+  } 
+  
   logger.info('End delete todoId', {todoId})
 }
 export async function updateTodo(userId: string, todoId: string, updateTodoRequest: UpdateTodoRequest) {
@@ -81,4 +90,23 @@ export async function updateTodoAttachmentUrl(userId: string, todoId: string, at
   }
 
   await todosAccess.updateTodoAttachmentUrl(userId, todoId, attachmentUrl)
+}
+
+export async function deleteTodoImage(userId: string, todoId: string) {
+  logger.info('Start delete todo image', {todoId})
+ 
+  const todo = await todosAccess.getTodoById(userId, todoId)
+  if (!todo) {
+    return {
+      statusCode: 404,
+      body: JSON.stringify({ error: 'todoId is not found!' })
+    }  
+  }
+  // Delete img url in database
+  await todosAccess.deleteImgUrl(userId, todoId)
+
+  // Delete img file in s3 if exist 
+  await attachmentUtils.deleteObjectS3(todo.attachmentUrl);
+
+  logger.info('End delete todo image', {todoId})
 }

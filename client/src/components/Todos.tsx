@@ -14,7 +14,7 @@ import {
   Loader
 } from 'semantic-ui-react'
 
-import { createTodo, deleteTodo, getTodos, patchTodo } from '../api/todos-api'
+import { createTodo, deleteTodo, getTodos, patchTodo, deleteTodoImg} from '../api/todos-api'
 import Auth from '../auth/Auth'
 import { Todo } from '../types/Todo'
 
@@ -64,10 +64,25 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
     try {
       await deleteTodo(this.props.auth.getIdToken(), todoId)
       this.setState({
-        todos: this.state.todos.filter(todo => todo.todoId !== todoId)
+        todos: this.state.todos.filter((todo) => todo.todoId !== todoId)
       })
     } catch {
       alert('Todo deletion failed')
+    }
+  }
+
+  onTodoDeleteImg = async (todoId: string, imgIndex: number) => {
+    try {
+      // delete image on server side
+      await deleteTodoImg(this.props.auth.getIdToken(), todoId)
+      // delete image on current screen
+      this.setState({
+        todos: update(this.state.todos, {
+          [imgIndex]: { attachmentUrl: { $set: '' } }
+        })
+      })
+    } catch {
+      alert('Delete todo image attachment failed')
     }
   }
 
@@ -88,6 +103,25 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
       alert('Todo deletion failed')
     }
   }
+
+  markAsCompleted = async (pos: number) => {
+    try {
+      const todo = this.state.todos[pos]
+      await patchTodo(this.props.auth.getIdToken(), todo.todoId, {
+        name: todo.name,
+        dueDate: todo.dueDate,
+        done: !todo.done
+      })
+      this.setState({
+        todos: update(this.state.todos, {
+          [pos]: { done: { $set: !todo.done } }
+        })
+      })
+    } catch {
+      alert('Todo deletion failed')
+    }
+  }
+  
 
   async componentDidMount() {
     try {
@@ -192,8 +226,18 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
                   <Icon name="delete" />
                 </Button>
               </Grid.Column>
+              
               {todo.attachmentUrl && (
+                <div>
                 <Image src={todo.attachmentUrl} size="small" wrapped />
+                <Button
+                    icon
+                    color="red"
+                    onClick={() => this.onTodoDeleteImg(todo.todoId, pos)}
+                  >
+                    <Icon name="trash" />
+                  </Button>
+                </div>
               )}
               <Grid.Column width={16}>
                 <Divider />
